@@ -12,31 +12,10 @@ $('#start-login-js').on('click', googleLogin);
 
 
 function googleLogin() {
-  const provider = new firebase.auth.GoogleAuthProvider()
-  provider.addScope('https://www.googleapis.com/auth/plus.login')
-
-  firebase.auth().signInWithPopup(provider)
-    .then(function (result) {
-      console.log(`${result.user.email} ha iniciado sesión`);
-      var user = result.user;
-      //location.href = "views/newsfeed.html";
-      location.href = "iRead/views/newsfeed.html";
-    })
-    .catch(function (error) {
-      console.log(`Error ${error.code}: ${error.message}`)
-    })
-}
-
-active();
-
-function active() {
-  firebase.auth().onAuthStateChanged(function (user) {
-    if (user) {
-      console.log('sesion activa del index');
-      // location.href = "../views/newsfeed.html";
-      location.href = "../iRead/views/newsfeed.html";
-    } else {
-      console.log('sesion cerrada del index');
-    }
+  var provider = new firebase.auth.GoogleAuthProvider();
+  firebase.auth().signInWithPopup(provider).then(function(result) {
+    user = result.user.email;
+    console.log(user);
+    location.href = "views/newsfeed.html";
   });
 }

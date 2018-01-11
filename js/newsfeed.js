@@ -12,13 +12,31 @@ firebase.initializeApp(config);
 $('#submit-js').on('click', post);
 $('#href-js').on('click', post);
 $('#logout-js').on('click', logout);
+function post(event) {
+  event.preventDefault();
+  var $content = $('#content-post-js').val();
+  firebase.auth().onAuthStateChanged(function (user) {
+    if (user) {
+      writeUserPost(user.uid, user.displayName, $content);
+      $('#content-post-js').val('');
+      $('#content-post-js').focus();
+    }
+  });
+}
 
-sessionActive();
+function writeUserPost(userId, name, content) {
+  firebase.database().ref('posts').push({
+    uid: userId,
+    author: name,
+    content: content
+  });
+}
 function logout() {
+  
   firebase.auth().signOut()
     .then(function (result) {
       console.log('Te has desconectado correctamente');
-      location.href = "../";
+      location.href = "../index.html";
     })
     .catch(function (error) {
       console.log(`Error ${error.code}: ${error.message}`)
@@ -36,10 +54,11 @@ function sessionActive() {
       console.log(user);
       writeUserData(user.uid, name, user.email, photoUrl)
     } else {
-      location.href = "../";
+      location.href = "../index.html";
     }
   });
 }
+sessionActive();
 
 function writeUserData(userId, name, email, imageUrl) {
   firebase.database().ref('users/' + userId).set({
@@ -49,38 +68,19 @@ function writeUserData(userId, name, email, imageUrl) {
   });
 }
 
-function post(event) {
-  event.preventDefault();
-  var $content = $('#content-post-js').val();
-  firebase.auth().onAuthStateChanged(function (user) {
-    if (user) {
-      writeUserPost(user.uid, user.displayName, $content);
-      $('#content-post-js').val('');
-      $('#content-post-js').focus();
-    }
-  });
-}
 
-function writeUserPost(userId, name, content) {
-  var ref = firebase.database().ref('users/' + userId);
-  var postsRef = ref.child("posts");
-  var newPostRef = postsRef.push();
-  newPostRef.set({
-    author: name,
-    content: content
-  });
-}
+
 
 recoverUserPost();
 
 function recoverUserPost() {
-  firebase.auth().onAuthStateChanged(function (user) {
-    if (user) {
-      var ref = firebase.database().ref('users/' + user.uid).child("posts");
-      ref.orderByChild("content").on("child_added", function (snapshot) {
-        //console.log(snapshot.val().content);
-        $('#all-post-js').append('<div><p>' + user.displayName + '</p>' + '<p>' + snapshot.val().content + '</p')
-      });
-    }
+  firebase.database().ref('posts').on('value', function(snapshot) {
+    snapshot.forEach(function(e) {
+      var element = e.val();
+      var author = element.author;
+      var content = element.content;
+    $('#all-post-js').append('<div><p>' + author + '</p>' + '<p>' + content + '</p')
+
   });
+})
 }
